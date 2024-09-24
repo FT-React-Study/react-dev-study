@@ -241,7 +241,7 @@ function TodoList({ todos, tab }) {
 */
 ```
 ### 매개변수
-- `calculateValue`: 캐싱하려는 값을 계산하는 함수. 순수해야 하며 인자를 받지 않고, 모든 타입의 값을 반환할 수 있어야 함..
+- `calculateValue`: 캐싱하려는 값을 계산하는 함수. 순수해야 하며 인자를 받지 않고, 모든 타입의 값을 반환할 수 있어야 함.
   - 렌더링할 때, `dependencies` 변경되면, `calculateValue` 호출되어 새로운 값을 계산. 그렇지 않으면, 이전 저장 값 반환.
 - `dependencies`: `calculateValue` 코드 내에서 참조하는 모든 반응형 값을 나열한 목록.
 ### 반환값
@@ -250,3 +250,118 @@ function TodoList({ todos, tab }) {
 - 비용이 높은 로직이 재계산되는 것을 생략하여 성능 향상 하고 싶은 경우.
 - `memo`로 감싸진 컴포넌트에 prop로 전달할 경우 값이 변경되지 않으면 렌더링 생략하고 싶을 때.
 - 또 다른 Hook의 종속성으로 사용할 경우, 객체 자체를 메모제이션 하고 싶은 경우.
+
+<br/>
+
+# [useOptimistic](https://ko.react.dev/reference/react/useOptimistic)
+UI를 낙관적으로 업데이트할 수 있게 해준다.
+```javascript
+const [optimisticState, addOptimistic] = useOptimistic(
+  state,
+  (currentState, optimisticValue) => {
+    // updateFn: merge and return new state with optimistic value
+  }
+);
+```
+### 매개변수
+- `state`: 작업이 대기 중이지 않을 때 초기에 반환될 값.
+- `updateFn(currentState, optimisticValue)`: 현재 상태와 `addOptimistic`에 전달된 낙관적 값을 취하는 함수로, 낙관적 상태의 결과를 반환.
+### 반환값
+- `optimisticState`: 결과적인 낙관적인 상태.
+- `addOptimistic`: 낙관적 업데이트가 있을 때 호출하는 디스패치 함수. `state`와 `optimisticValue`로 `updateFn`을 호출
+
+<br/>
+
+# [useReducer](https://ko.react.dev/reference/react/useReducer)
+컴포넌트에 [reducer](https://ko.react.dev/learn/extracting-state-logic-into-a-reducer)를 추가해준다.
+```javascript
+const [state, dispatch] = useReducer(reducer, initialArg, init?);
+/*
+const [state, dispatch] = useReducer(reducer, { age: 42 });
+
+function handleClick() {
+  dispatch({ type: 'incremented_age' });
+  // ...
+*/
+```
+### 매개변수
+- `reducer`: state가 어떻게 업데이트 되는지 지정하는 리듀서 함수.
+- `initialArg`: 초기 state가 계산되는 값. 초기 state가 어떻게 계산되는지는 다음 `init` 인수에 따라 달라진다.
+- `init`: 초기 state를 반환하는 초기화 함수. `init`이 지정되면 초기 state는 `init(initialArg)`의 호출 결과.
+### 반환값
+- `state`: 현재의 state를 의미한다.
+- `dispatch`: state를 새로운 값으로 업데이트하고 리렌더링을 일으킨다.
+  - action을 인수로 받는다. React는 action을 제공받아 호출된 `reducer`의 반환값을 통해 다음 state 값을 설정한다.
+
+<br/>
+
+# [useRef](https://ko.react.dev/reference/react/useRef)
+렌더링에 필요하지 않은 값을 참조할 수 있다.
+```javascript
+const ref = useRef(initialValue);
+/*
+const intervalRef = useRef(0);
+const inputRef = useRef(null);
+*/
+```
+### 매개변수
+- `initialValue`: ref 객체의 `current` 프로퍼티 초기 설정값. 이 인자는 초기 렌더링 이후부터는 무시된다.
+### 반환값
+- `current`라는 단일 프로퍼티를 가진 객체를 반환하며, 나중에 다른 값으로 바꿀 수도 있다.
+### 유용한 경우
+- ref는 변경해도 리렌더링을 유발하지 않기 때문에 시각적 출력에 영향을 미치지 않는 정보를 저장하는 데 적합하다.
+
+<br/>
+
+# [useState](https://ko.react.dev/reference/react/useState)
+컴포넌트에 [state 변수](https://ko.react.dev/learn/state-a-components-memory)를 추가할 수 있도록 한다.
+```javascript
+const [state, setState] = useState(initialState);
+/*
+const [name, setName] = useState('Taylor');
+const [todos, setTodos] = useState(() => createTodos());
+*/
+```
+### 매개변수
+- `initialState`: state의 초기 설정값이다. 이 인수는 초기 렌더링 이후에는 무시된다.
+  - 함수를 전달하면 이를 초기화 함수(초기 상태를 설정할 때만 호출되는 함수)로 취급한다. 첫 렌더링에서만 호출하기 때문에.
+### 반환값
+- `state`: 현재 state이며 초기 렌더링에는 전달한 `initialState`와 일치한다.
+- `setState`: state를 다른 값으로 업데이트하고 리렌더링을 촉발할 수 있는 set 함수.
+
+<br/>
+
+# [useSyncExternalStore](https://ko.react.dev/reference/react/useSyncExternalStore)
+외부 store(Redux, Zustand 등)를 구독할 수 있도록 해준다.
+```javascript
+const snapshot = useSyncExternalStore(
+  subscribe, // 상태 변경을 구독하는 함수
+  getSnapshot, // 현재 상태를 반환하는 함수
+  getServerSnapshot? // (선택 사항) 서버 사이드 렌더링 시 사용하는 함수
+);
+```
+### 매개변수
+- `subscribe`: `callback` 인수를 받아 store에 구독하는 함수. 스토어가 변경되면 제공된 `callback`을 호출하고 컴포넌트 리렌더링.
+- `getSnapshot`: 컴포넌트에 필요한 store 데이터의 스냅샷을 반환하는 함수. 반환값이 변경되면 컴포넌트 리렌더링.
+- `getServerSnapshot`: store에 있는 데이터의 초기 스냅샷을 반환하는 함수.
+  - 서버 사이드 렌더링을 사용할 때, 서버에서 외부 스토어의 상태를 읽어올 수 있는 함수. 클라이언트와 서버가 일관된 상태로 렌더링되도록 돕는다. 
+### 반환값
+- `snapshot`: 렌더링 로직에 사용할 수 있는 store의 현재 스냅샷이다.
+### 유용한 경우
+- 외부 API나 브라우저의 전역 객체에서 관리되는 데이터에 대해 동기화해야 할 때.
+- 클라이언트와 서버 사이의 상태 일관성을 유지하기 위해, 서버 사이드 렌더링에서도 상태가 동기화되도록 할 때.
+
+<br/>
+
+# [useTransition](https://ko.react.dev/reference/react/useTransition)
+UI 업데이트의 우선순위를 관리하고 비긴급 상태 업데이트를 처리할 수 있도록 해준다.
+```javascript
+const [isPending, startTransition] = useTransition();
+```
+### 매개변수
+- 어떠한 매개변수도 받지 않는다.
+### 반환값
+- `isPending`: 대기 중인 Transition이 있는지에 대한 여부.
+- `startTransition`: 상태 업데이트를 Transition으로 표시할 수 있게 해주는 함수이다.
+### 유용한 경우
+- 긴급하지는 않지만, 데이터의 처리에 필요한 양이 대량일 경우 유용하다.
